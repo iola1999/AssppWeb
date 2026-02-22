@@ -21,6 +21,8 @@ export default function AccountDetail() {
   const [needsCode, setNeedsCode] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+
 
   useEffect(() => {
     loadAccounts();
@@ -90,6 +92,28 @@ export default function AccountDetail() {
     await removeAccount(account.email);
     navigate("/accounts");
   }
+
+  async function handleExport() {
+    if (!account) return;
+    setExporting(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const exportData = JSON.stringify(account, null, 2);
+      await navigator.clipboard.writeText(exportData);
+      setSuccess("Account data copied to clipboard.");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to export account",
+      );
+    } finally {
+      setExporting(false);
+    }
+  }
+
+
+
 
   const country = storeIdToCountry(account.store);
 
@@ -169,6 +193,20 @@ export default function AccountDetail() {
           </div>
         )}
 
+        <section className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-sm font-medium text-gray-900 mb-3">Export</h3>
+          <p className="text-xs text-gray-500 mb-4">
+            Export account data to clipboard for backup.
+          </p>
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {exporting && <Spinner />}
+            Export to Clipboard
+          </button>
+        </section>
         <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={handleReauth}
